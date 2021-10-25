@@ -17,10 +17,17 @@ insert into poi values (5,ST_Geomfromtext('POINT(6.5 6)'),'J');
 insert into roads values (1,ST_MakeLine(ST_Geomfromtext('Point(0 4.5)'),ST_Geomfromtext('Point(12 4.5)')),'RoadX');
 insert into roads values (2,st_makeline(ST_Geomfromtext('Point(7.5 0)'),st_geomfromtext ('Point(7.5 10.5)')),'RoadY');
 
+-- a
 select SUM(st_length(geo)) from roads;
+-- b
 select ST_asewkt(geo), ST_area(geo),st_perimeter(geo) from buildings where Bname like 'BuildingA';
+-- c
 select Bname, st_area(geo) from buildings order by Bname;
+-- d
 select Bname, st_perimeter(geo) from buildings order by st_area(geo) desc limit 2; 
+-- e
 select st_distance(b.geo,p.geo) from buildings b,poi p where b.Bname like 'BuildingC' and p.Bname like 'G';
+-- f
 select st_area(st_intersection(st_buffer((select geo from buildings where Bname like 'BuildingB'),0.5),(select geo from buildings where Bname like 'BuildingC')));
+-- g
 select st_area(st_symdifference((select geo from buildings where Bname like 'BuildingC'),st_geomfromtext('Polygon((4 7, 6 7, 6 8, 4 8, 4 7))')));
