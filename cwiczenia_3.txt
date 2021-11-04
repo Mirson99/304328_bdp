@@ -1,0 +1,80 @@
+-- 4
+SELECT
+	 popp.geom
+INTO
+	tableB
+FROM
+	popp,rivers
+WHERE
+	popp.f_codedesc='Building'
+AND
+	ST_DWithin(popp.geom, rivers.geom, 1000)=true;
+SELECT COUNT(*)
+FROM tableB
+	
+-- 5
+SELECT 
+	name, geom, elev
+INTO
+	airportsNew
+FROM airports
+		
+-- 5A
+SELECT 
+	name,geom,elev
+INTO
+	eastWeastAirports
+FROM 
+	airportsNew 
+WHERE 
+	ST_Y(geom)=(SELECT MIN(ST_Y(geom)) FROM airportsNew);
+OR 
+	ST_Y(geom)=(SELECT MAX(ST_Y(geom)) FROM airportsNew) 
+	
+-- 5B
+INSERT INTO newAirports VALUES(
+	'airportB',
+	(SELECT 
+		ST_LineInterpolatePoint(ST_shortestline(a.geom, b.geom), 0.5)
+	FROM eastWeastAirports a, eastWeastAirports b where a.name='NOATAK' AND b.name='NIKOLSKI AS'),
+	100);
+
+DROP TABLE airportsMostEastWest;
+	
+-- 6
+SELECT
+	ST_Area(
+		ST_Buffer(
+			ST_shortestline(lake.geom, airport.geom),
+			1000))		
+FROM
+	lakes lake, airports airport
+WHERE
+	lake.names = 'Iliamna Lake'
+AND
+	airport.name = 'AMBLER';
+
+--  7
+SELECT
+	SUM(ST_Area(ST_Intersection( t.geom, st.geom))), vegdesc
+FROM
+	trees t,
+	(SELECT 	geom
+	FROM	tundra
+	UNION ALL
+	SELECT 	geom
+	FROM	swamp) st
+WHERE
+	ST_Intersects(t.geom, st.geom) 
+	AND
+	ST_IsValid(t.geom)
+	AND
+	ST_IsValid(st.geom)
+GROUP BY
+	vegdesc;
+	
+
+
+		
+		
+		
