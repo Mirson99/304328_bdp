@@ -1,0 +1,82 @@
+CREATE EXTENSION postgis SCHEMA obiekty;
+
+create table obiekty.obiekty(
+   name varchar(255) not null,
+   geom geometry not null
+ );
+
+-- 1A
+
+INSERT INTO obiekty VALUES
+('obiekt1',ST_COLLECT( Array[
+            'LINESTRING(0 1, 1 1)', 
+            'CIRCULARSTRING(1 1, 2 0, 3 1)' , 
+            'CIRCULARSTRING(3 1, 4 2, 5 1)' , 
+            'LINESTRING(5 1, 6 1)']));
+
+-- 1B
+
+INSERT INTO obiekty VALUES
+('obiekt2',
+ST_BuildArea(ST_Collect(Array[
+                'LINESTRING(10 2, 10 6, 14 6)', 
+                'CIRCULARSTRING(14 6, 16 4, 14 2)' , 
+                'CIRCULARSTRING(14 2, 12 0, 10 2)' ,
+                'CIRCULARSTRING(11 2, 13 2, 11 2)'])));
+
+-- 1C
+
+INSERT INTO obiekty
+values ('obiekt3',ST_Collect(Array [
+            'LINESTRING(7 15, 10 17)',
+            'LINESTRING(10 17, 12 13)',
+            'LINESTRING(12 13, 7 15)']));
+
+-- 1D
+
+INSERT INTO obiekty VALUES
+('obiekt4',
+ST_GeomFromText('LINESTRING(20 20, 25 25, 27 24, 25 22, 26 21, 22 19, 20.5 19.5)',0));
+
+-- 1E
+
+INSERT INTO obiekty
+VALUES ('obiekt5',
+        ST_Collect(Array [
+            'POINT(30 30 59)',
+            'POINT(38 32 234)']));
+
+-- 1F
+
+INSERT INTO obiekty VALUES
+('obiekt6',ST_GeomFromText('GEOMETRYCOLLECTION( LINESTRING(1 1, 3 2) , POINT(4 2))',0));
+
+-- 2
+
+SELECT ST_Area(ST_buffer(ST_ShortestLine(a.geom,b.geom),5))
+FROM obiekty a, obiekty b
+WHERE a.name='obiekt3' and b.name='obiekt4';
+
+-- 3
+
+UPDATE obiekty SET geom=st_makepolygon(st_linemerge(ST_Collect(Array [
+            'LINESTRING(20 20, 25 25)',
+            'LINESTRING(25 25, 27 24)',
+            'LINESTRING(27 24, 25 22)',
+            'LINESTRING(25 22, 26 21)',
+            'LINESTRING(26 21, 22 19)',
+            'LINESTRING(22 19, 20 20)'])))
+WHERE name='obiekt4';
+
+-- zeby mozliwe bylo wykonanie tego zadania trzeba bylo zaktualizowac linestringi budujące poligon
+-- poniewaz ma byc figura zamknieta
+
+-- 4
+
+INSERT INTO obiekty VALUES
+('obiekt7', 
+(SELECT ST_Collect(a.geom, b.geom) FROM obiekty a, obiekty b WHERE a.name='obiekt3' AND b.name = 'obiekt4'));
+
+-- 5
+
+SELECT ST_AREA(ST_COLLECT(ST_BUFFER(geom, 5))) FROM obiekty WHERE NOT st_hasarc(obiekty.geom)
